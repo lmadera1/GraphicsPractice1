@@ -1,0 +1,31 @@
+Window W H
+-Construct SFML Window with width W and height H.
+ Width		W	int
+ Height		H	int
+
+
+Font F S R G B
+-Defines font to be used to draw text
+ Font File	F	std::string
+ Font Size	S	int
+ RGB Color	(R,B,B)	int, int, int
+
+
+Rectangle N X Y VX VY R G B W H
+-Defines a RectangleShape
+ Shape Name	N	std::string
+ Position	(X,Y)	float, float
+ Velocity	(VX,VY)	float, float
+ RGB Color	(R,G,B)	int, int, int
+ Size		(W,H)	float, float
+
+
+Circle N X Y VX VY R G B R
+-Defines a CircleShape
+ Shape Name	N	std::string
+ Position	(X,Y)	float, float
+ Velocity	(VX,VY)	float, float
+ RGB Color	(R,G,B)	int, int, int
+ Radius		R	float
+ 
+  
