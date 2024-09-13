@@ -5,40 +5,42 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
 
+using namespace std;
+
+string SHAPE_CONFIG_FILE = "ShapeConfig.txt";
+
 //ShapeObject class
 class ShapeObject 
 {
 public:
     sf::Shape* shape = nullptr;
-    float vx;
-    float vy;
+    sf::Vector2f velocity;
 };
 
-bool CreateShapeObject(std::string& line, ShapeObject* shapeObject)
+bool CreateShapeObject(string &line, ShapeObject* shapeObject)
 {
-    std::stringstream ss(line);
+    stringstream ss(line);
 
-    std::string shapeType;
+    string shapeType;
     ss >> shapeType;
-    std::cout << shapeType << " ";
+    cout << shapeType << " ";
 
-    std::string shapeName;
+    string shapeName;
     ss >> shapeName;
-    std::cout << shapeName << " ";
+    cout << shapeName << " ";
 
     float x, y;
     ss >> x >> y;
-    std::cout << x << " " << y << " ";
+    cout << x << " " << y << " ";
 
     float vx, vy;
     ss >> vx >> vy;
-    std::cout << vx << " " << vy << " ";
-    shapeObject->vx = vx;
-    shapeObject->vy = vy;
+    cout << vx << " " << vy << " ";
+    shapeObject->velocity = sf::Vector2f(vx, vy);
 
     int r, g, b;
     ss >> r >> g >> b;
-    std::cout << r << " " << g << " " << b << " ";
+    cout << r << " " << g << " " << b << " ";
     sf::Shape* shape;
 
     //TODO: Below only creates circles
@@ -46,7 +48,7 @@ bool CreateShapeObject(std::string& line, ShapeObject* shapeObject)
     {
         float radius;
         ss >> radius;
-        std::cout << radius << " ";
+        cout << radius << " ";
         sf::CircleShape circle(radius);
         shape = new sf::CircleShape(radius);
     }
@@ -54,7 +56,7 @@ bool CreateShapeObject(std::string& line, ShapeObject* shapeObject)
     {
         float width, height;
         ss >> width >> height;
-        std::cout << width << " " << height << " ";
+        cout << width << " " << height << " ";
         sf::Vector2f size(width, height);
         shape = new sf::RectangleShape(size);
     }
@@ -62,7 +64,7 @@ bool CreateShapeObject(std::string& line, ShapeObject* shapeObject)
     {
         return false;
     }
-    std::cout << std::endl;
+    cout << endl;
     shape->setPosition(x, y);
 
     sf::Color color = sf::Color(r, g, b);
@@ -73,13 +75,10 @@ bool CreateShapeObject(std::string& line, ShapeObject* shapeObject)
     return true;
 }
 
-bool GetShapesFromConfig(std::ifstream* file, std::vector<ShapeObject*> &shapes) 
+bool GetShapesFromConfig(vector<string> &shapesConfig, vector<ShapeObject*> &shapes) 
 {
-    if (!file->is_open()) return false;
+    for (string line : shapesConfig) {
 
-    std::string line;
-    while (std::getline(*file, line)) 
-    {
         ShapeObject* shapeObject = new ShapeObject();
         if (!CreateShapeObject(line, shapeObject)) {
             return false;
@@ -90,19 +89,12 @@ bool GetShapesFromConfig(std::ifstream* file, std::vector<ShapeObject*> &shapes)
 }
 
 //TODO: Finish
-bool GetFontFromConfig(std::ifstream* file, sf::Font &font) 
+bool GetFontFromConfig(string &line, sf::Font &font) 
 {
-    if (!file->is_open()) return false;
 
-    std::string line;
-    if (!std::getline(*file, line))
-    {
-        return false;
-    }
+    stringstream ss(line);
 
-    std::stringstream ss(line);
-
-    std::string lineHeader;
+    string lineHeader;
     ss >> lineHeader;
 
     if (lineHeader != "Font") return false;
@@ -110,20 +102,11 @@ bool GetFontFromConfig(std::ifstream* file, sf::Font &font)
     return true;
 }
 
-
-bool GetWindowWidthHeight(std::ifstream* file, float &width, float &height) 
+bool GetWindowWidthHeight(const string &line, float &width, float &height)
 {
-    if (!file->is_open()) return false;
+    stringstream ss(line);
 
-    std::string line;
-    if (!std::getline(*file, line)) 
-    {
-        return false;
-    }
-
-    std::stringstream ss(line);
-
-    std::string lineHeader;
+    string lineHeader;
     ss >> lineHeader;
 
     if (lineHeader != "Window") return false;
@@ -133,24 +116,64 @@ bool GetWindowWidthHeight(std::ifstream* file, float &width, float &height)
     return true;
 }
 
+void UpdatePhysics(vector<ShapeObject*> &shapeObjects) 
+{
+    for (auto shapeObject : shapeObjects) 
+    {
+        shapeObject->shape->move(shapeObject->velocity);
+    }
+}
+
+bool ReadShapeConfig(string& windowConfig, string& fontConfig, vector<string>& shapesConfig) 
+{
+    ifstream file(SHAPE_CONFIG_FILE);
+
+    if (!file.is_open())
+    {
+        return false;
+    }
+
+    //get windowConfig line
+    if (!getline(file, windowConfig)) 
+    {
+        return false;
+    }
+
+    if (!getline(file, fontConfig)) 
+    {
+        return false;
+    }
+
+    string shapeConfig;
+    while (getline(file, shapeConfig))
+    {
+        shapesConfig.push_back(shapeConfig);
+    }
+
+    file.close();
+
+    return true;
+}
+
+
 //Main program loop
 int main()
 {
-    //Open ShapeConfig.txt file
-    std::ifstream file("ShapeConfig.txt");
 
-    if (!file.is_open()) 
+    //Open ShapeConfig.txt file
+    string windowConfig;
+    string fontConfig;
+    vector<string> shapesConfig;
+    if (!ReadShapeConfig(windowConfig, fontConfig, shapesConfig)) 
     {
-        std::cout << "Can't open file ShapeConfig.txt" << std::endl;
-        return -1;
+        cout << "Can't open file ShapeConfig.txt" << endl;
     }
 
     //Get window dimensions from ShapeConfig.txt
     float width, height;
-
-    if (!GetWindowWidthHeight(&file, width, height)) 
+    if (!GetWindowWidthHeight(windowConfig, width, height)) 
     {
-        std::cout << "Malformed ShapeConfig.txt file" << std::endl;
+        cout << "Malformed ShapeConfig.txt file" << endl;
     }
 
     //Create Window
@@ -158,23 +181,20 @@ int main()
 
     //Get font file from from ShapeConfig.txt
     sf::Font font;
-    if (!GetFontFromConfig(&file, font)) 
+    if (!GetFontFromConfig(fontConfig, font)) 
     {
-        std::cout << "Malformed ShapeConfig.txt file" << std::endl;
+        cout << "Malformed ShapeConfig.txt file" << endl;
     }
 
     //Get Shapes from ShapeConfig.txt
-    std::vector<ShapeObject*> shapes;
-    if (!GetShapesFromConfig(&file, shapes)) 
+    vector<ShapeObject*> shapeObjects;
+    if (!GetShapesFromConfig(shapesConfig, shapeObjects)) 
     {
-        std::cout << "Malformed ShapeConfig.txt file" << std::endl;
+        cout << "Malformed ShapeConfig.txt file" << endl;
     }
    
     //Print how many shapes loaded
-    std::cout << shapes.size() << " shapes loaded" << std::endl;
-
-    //Close ShapeConfig.txt file
-    file.close();
+    cout << shapeObjects.size() << " shapes loaded" << endl;
 
     //Main Loop
     while (window.isOpen())
@@ -189,16 +209,18 @@ int main()
         window.clear();
 
         //Draw all shapes
-        for (auto shapeObject : shapes) 
+        for (auto shapeObject : shapeObjects) 
         {
             window.draw(*shapeObject->shape);
         }
+
+        UpdatePhysics(shapeObjects);
 
         window.display();
     }
 
     //Clean vector
-    for (auto shape : shapes) 
+    for (auto shape : shapeObjects) 
     {
         delete shape;
     }
