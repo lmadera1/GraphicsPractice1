@@ -135,6 +135,9 @@
   <ItemGroup>
     <ClCompile Include="GraphicsPractice1.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GraphicsPractice1.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -1,21 +1,80 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <SFML/Graphics.hpp>
-#include <memory>
+#include "GraphicsPractice1.h"
 
 using namespace std;
 
 string SHAPE_CONFIG_FILE = "ShapeConfig.txt";
 
-//ShapeObject class
-class ShapeObject 
+//Main program loop
+int main()
 {
-public:
-    sf::Shape* shape = nullptr;
-    sf::Vector2f velocity;
-};
+
+    //Open ShapeConfig.txt file
+    string windowConfig;
+    string fontConfig;
+    vector<string> shapesConfig;
+    if (!ReadShapeConfig(windowConfig, fontConfig, shapesConfig))
+    {
+        cout << "Can't open file ShapeConfig.txt" << endl;
+    }
+
+    //Get window dimensions from ShapeConfig.txt
+    float width, height;
+    if (!GetWindowWidthHeight(windowConfig, width, height))
+    {
+        cout << "Malformed ShapeConfig.txt file" << endl;
+    }
+
+    //Create Window
+    sf::RenderWindow window(sf::VideoMode(width, height), "Graphics Practice 1");
+
+    //Get font file from from ShapeConfig.txt
+    sf::Font font;
+    if (!GetFontFromConfig(fontConfig, font))
+    {
+        cout << "Malformed ShapeConfig.txt file" << endl;
+    }
+
+    //Get Shapes from ShapeConfig.txt
+    vector<ShapeObject*> shapeObjects;
+    if (!GetShapesFromConfig(shapesConfig, shapeObjects))
+    {
+        cout << "Malformed ShapeConfig.txt file" << endl;
+    }
+
+    //Print how many shapes loaded
+    cout << shapeObjects.size() << " shapes loaded" << endl;
+
+    //Main Loop
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+
+        window.clear();
+
+        //Draw all shapes
+        for (auto shapeObject : shapeObjects)
+        {
+            window.draw(*shapeObject->shape);
+        }
+
+        UpdatePhysics(shapeObjects);
+
+        window.display();
+    }
+
+    //Clean vector
+    for (auto shape : shapeObjects)
+    {
+        delete shape;
+    }
+
+    return 0;
+}
 
 bool CreateShapeObject(string &line, ShapeObject* shapeObject)
 {
@@ -156,74 +215,3 @@ bool ReadShapeConfig(string& windowConfig, string& fontConfig, vector<string>& s
 }
 
 
-//Main program loop
-int main()
-{
-
-    //Open ShapeConfig.txt file
-    string windowConfig;
-    string fontConfig;
-    vector<string> shapesConfig;
-    if (!ReadShapeConfig(windowConfig, fontConfig, shapesConfig)) 
-    {
-        cout << "Can't open file ShapeConfig.txt" << endl;
-    }
-
-    //Get window dimensions from ShapeConfig.txt
-    float width, height;
-    if (!GetWindowWidthHeight(windowConfig, width, height)) 
-    {
-        cout << "Malformed ShapeConfig.txt file" << endl;
-    }
-
-    //Create Window
-	sf::RenderWindow window(sf::VideoMode(width, height), "Graphics Practice 1");
-
-    //Get font file from from ShapeConfig.txt
-    sf::Font font;
-    if (!GetFontFromConfig(fontConfig, font)) 
-    {
-        cout << "Malformed ShapeConfig.txt file" << endl;
-    }
-
-    //Get Shapes from ShapeConfig.txt
-    vector<ShapeObject*> shapeObjects;
-    if (!GetShapesFromConfig(shapesConfig, shapeObjects)) 
-    {
-        cout << "Malformed ShapeConfig.txt file" << endl;
-    }
-   
-    //Print how many shapes loaded
-    cout << shapeObjects.size() << " shapes loaded" << endl;
-
-    //Main Loop
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-
-        //Draw all shapes
-        for (auto shapeObject : shapeObjects) 
-        {
-            window.draw(*shapeObject->shape);
-        }
-
-        UpdatePhysics(shapeObjects);
-
-        window.display();
-    }
-
-    //Clean vector
-    for (auto shape : shapeObjects) 
-    {
-        delete shape;
-    }
-
-	return 0;
-}
