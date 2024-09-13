@@ -21,7 +21,7 @@ bool CreateShapeObject(string& line, ShapeObject* shapeObject);
 
 bool ReadShapeConfig(string& windowConfig, string& fontConfig, vector<string>& shapesConfig);
 
-void UpdatePhysics(vector<ShapeObject*>& shapeObjects);
+void UpdatePhysics(vector<ShapeObject*>& shapeObjects, float width, float height);
 
 bool GetWindowWidthHeight(const string& line, float& width, float& height);
 

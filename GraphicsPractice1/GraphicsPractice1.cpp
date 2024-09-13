@@ -62,7 +62,7 @@ int main()
             window.draw(*shapeObject->shape);
         }
 
-        UpdatePhysics(shapeObjects);
+        UpdatePhysics(shapeObjects, width, height);
 
         window.display();
     }
@@ -175,11 +175,30 @@ bool GetWindowWidthHeight(const string &line, float &width, float &height)
     return true;
 }
 
-void UpdatePhysics(vector<ShapeObject*> &shapeObjects) 
+void UpdatePhysics(vector<ShapeObject*> &shapeObjects, float width, float height) 
 {
     for (auto shapeObject : shapeObjects) 
     {
+        //see if shape hits edge of screen
+        sf::FloatRect boundingBox = shapeObject->shape->getGlobalBounds();
+        
+        //Reverse x velocity
+        float right = boundingBox.left + boundingBox.width;
+        if (boundingBox.left <= 0 || right >= width) 
+        {
+            shapeObject->velocity.x *= -1;
+        }
+
+        //Reversy y velocity
+        float bottom = boundingBox.top + boundingBox.height;
+        if (boundingBox.top <= 0 || bottom >= height) 
+        {
+            shapeObject->velocity.y *= -1;
+        }
+
+        //Move object in direction of velocity
         shapeObject->shape->move(shapeObject->velocity);
+
     }
 }
 
